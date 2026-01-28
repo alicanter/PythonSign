@@ -1,0 +1,55 @@
+name: Build Cross-Platform Executables
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Define the operating systems to build on
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: PDFSigner-Linux
+            executable_path: dist/PDFSigner
+          - os: windows-latest
+            artifact_name: PDFSigner-Windows
+            executable_path: dist/PDFSigner.exe
+          - os: macos-latest
+            artifact_name: PDFSigner-MacOS
+            executable_path: dist/PDFSigner.app
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller pyhanko tkinter
+
+      - name: Build with PyInstaller (Windows/Linux)
+        if: matrix.os != 'macos-latest'
+        run: pyinstaller --noconsole --onefile --name "PDFSigner" pdf_signer.py
+
+      - name: Build with PyInstaller (MacOS Bundle)
+        if: matrix.os == 'macos-latest'
+        # macOS specifically uses --windowed to create the .app folder structure
+        run: pyinstaller --noconsole --windowed --onefile --name "PDFSigner" pdf_signer.py
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.executable_path }}
