@@ -37,16 +37,16 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install pyinstaller pyhanko tkinter
+          pip install pyinstaller pyhanko tk
 
       - name: Build with PyInstaller (Windows/Linux)
         if: matrix.os != 'macos-latest'
-        run: pyinstaller --noconsole --onefile --name "PDFSigner" pdf_signer.py
+        run: pyinstaller --noconsole --onefile --name "PDFSigner" main.py
 
       - name: Build with PyInstaller (MacOS Bundle)
         if: matrix.os == 'macos-latest'
         # macOS specifically uses --windowed to create the .app folder structure
-        run: pyinstaller --noconsole --windowed --onefile --name "PDFSigner" pdf_signer.py
+        run: pyinstaller --noconsole --windowed --onefile --name "PDFSigner" main.py
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
